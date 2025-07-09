@@ -1,0 +1,188 @@
+#!/bin/bash
+# ==================================================
+# Claude Code + Claude Code Proxy 环境自动化部署脚本
+# ==================================================
+# 
+# 功能说明：
+# 1. 自动检测并安装必要的依赖工具（uv、npm）
+# 2. 检测并安装 Claude Code
+# 3. 管理 Claude Code Proxy 的安装、启动和端口冲突处理
+# 4. 配置代理环境并启动 Claude Code
+# 
+# 执行流程：
+# ├── 环境检查
+# │   ├── 检查 uv 是否安装（Python 包管理器）
+# │   ├── 检查 Claude Code 是否安装
+# │   └── 检查 npm/Node.js 环境
+# ├── Claude Code Proxy 管理
+# │   ├── 检查是否已安装
+# │   ├── 检查端口占用情况（默认8082）
+# │   ├── 清理冲突进程
+# │   └── 启动代理服务
+# └── 启动 Claude Code
+#     ├── 配置代理环境变量
+#     └── 启动 Claude Code 客户端
+# 
+# 注意事项：
+# - 确保网络连接正常，用于下载依赖
+# - 脚本会自动处理端口冲突
+# - 配置参数可在下方"设置区域"进行修改
+# ==================================================
+# === 设置区域：可根据需要修改 ===
+CLAUDE_COMMAND="claude"   # 或者 claude，如果你装的是另一个版本
+OPENAI_API_KEY=sk-** # 你的openai api key
+OPENAI_BASE_URL=https://api.yourdomain.com/v1 # 你的openai base url
+BIG_MODEL="gemini-2.5-pro-preview-06-05" # 大模型
+SMALL_MODEL="gpt-4o-mini" # 小模型
+ATHROPIC_BASE_URL=http://localhost:8082 # 代理地址
+CLAUDE_DIR="$HOME/.claude" # 你的 Claude Code 配置目录
+CLAUDE_PROXY_DIR="$HOME/.claude/proxy" # 你的 Claude Code Proxy 配置目录
+PROXY_PROJECT_DIR="$CLAUDE_PROXY_DIR/claude-code-proxy" # 你的 Claude Code Proxy 项目目录
+PROXY_PORT=8082
+ANTHROPIC_BASE_URL=http://localhost:$PROXY_PORT # 代理地址
+ANTHROPIC_AUTH_TOKEN="api-key" # 代理token，不用改
+
+echo "📦 正在检查 Claude Code 是否已安装..."
+# 判断命令是否存在
+if command -v $CLAUDE_COMMAND &>/dev/null; then
+    echo "✅ $CLAUDE_COMMAND 已安装"
+else
+    echo "❌ 未检测到 $CLAUDE_COMMAND，尝试使用 npm 全局安装..."
+
+    if ! command -v npm &>/dev/null; then
+        echo "❌ 未检测到 npm，请先安装 Node.js"
+        exit 1
+    fi
+
+    echo "📥 正在安装 Claude Code..."
+    if npm install -g @anthropic-ai/claude-code; then
+        echo "✅ Claude Code 安装完成"
+    else
+        echo "❌ 安装失败，请检查网络或权限"
+        exit 1
+    fi
+fi
+
+# 检查uv是否安装
+echo "📦 正在检查 uv 是否已安装..."
+
+if command -v uv &>/dev/null; then
+    echo "✅ uv 已安装"
+else
+    echo "❌ 未检测到 uv，正在尝试安装..."
+    
+    # 检查是否有curl
+    if command -v curl &>/dev/null; then
+        echo "📥 正在使用 curl 安装 uv..."
+        if curl -LsSf https://astral.sh/uv/install.sh | sh; then
+            echo "✅ uv 安装完成"
+            # 重新加载环境变量
+            export PATH="$HOME/.cargo/bin:$PATH"
+        else
+            echo "❌ uv 安装失败，请检查网络连接"
+            exit 1
+        fi
+    else
+        echo "❌ 未检测到 curl，无法自动安装 uv"
+        echo "请手动安装 uv: https://docs.astral.sh/uv/getting-started/installation/"
+        exit 1
+    fi
+fi
+
+
+# 检查 Claude Code Proxy是否安装
+# git clone https://github.com/fuergaosi233/claude-code-proxy
+if [ -d "$PROXY_PROJECT_DIR" ]; then
+    echo "✅ Claude Code Proxy 已安装"
+    
+    # 检查端口是否被占用
+    echo "🔍 检查端口 $PROXY_PORT 是否被占用..."
+    if lsof -ti:$PROXY_PORT > /dev/null 2>&1; then
+        echo "⚠️ 端口 $PROXY_PORT 已被占用！"
+        PID=$(lsof -ti:$PROXY_PORT)
+        PROCESS_NAME=$(ps -p $PID -o comm= 2>/dev/null || echo "unknown")
+        echo "   占用进程: PID $PID ($PROCESS_NAME)"
+        
+        read -p "是否要终止该进程以释放端口 $PROXY_PORT？(y/n): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy是]$ ]]; then
+            echo "正在终止进程 $PID..."
+            if kill -9 $PID 2>/dev/null; then
+                echo "✅ 进程 $PID 已终止，端口 $PROXY_PORT 已释放"
+            else
+                echo "❌ 无法终止进程 $PID，可能需要管理员权限"
+                echo "请手动终止该进程或使用不同端口"
+                exit 1
+            fi
+        else
+            echo "❌ 用户选择不终止进程"
+            echo "您可以："
+            echo "1. 手动终止占用端口的进程"
+            echo "2. 修改 PORT 环境变量使用其他端口"
+            echo "3. 如果是之前的proxy进程，可以直接启动Claude Code"
+            read -p "是否直接启动 Claude Code？(y/n): " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy是]$ ]]; then
+                ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN claude
+                exit 0
+            else
+                exit 1
+            fi
+        fi
+    else
+        echo "✅ 端口 $PROXY_PORT 可用"
+    fi
+    
+    #运行claude-code-proxy
+    cd $PROXY_PROJECT_DIR
+    uv run claude-code-proxy & sleep 1 && ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN claude
+else
+    echo "❌ 未检测到 Claude Code Proxy，是否安装？(y/n)"
+    read -n 1 -p "请输入(y/n): " INSTALL_PROXY
+    if [ "$INSTALL_PROXY" == "y" ]; then
+        #在$CLAUDE_PROXY_DIR目录下执行git clone https://github.com/fuergaosi233/claude-code-proxy
+        mkdir -p $CLAUDE_PROXY_DIR
+        cd $CLAUDE_PROXY_DIR
+        git clone git@github.com:fuergaosi233/claude-code-proxy.git
+        cd claude-code-proxy
+        uv sync
+        cp .env.example .env
+        #修改.env文件
+        sed -i '' "s/OPENAI_API_KEY=.*/OPENAI_API_KEY=$OPENAI_API_KEY/" .env # 替换OPENAI_API_KEY
+        sed -i '' "s|OPENAI_BASE_URL=.*|OPENAI_BASE_URL=$OPENAI_BASE_URL|" .env # 替换OPENAI_BASE_URL
+        sed -i '' "s/BIG_MODEL=.*/BIG_MODEL=$BIG_MODEL/" .env # 替换BIG_MODEL
+        sed -i '' "s/SMALL_MODEL=.*/SMALL_MODEL=$SMALL_MODEL/" .env # 替换SMALL_MODEL
+        # 检查端口是否被占用
+        echo "🔍 检查端口 $PROXY_PORT 是否被占用..."
+        if lsof -ti:$PROXY_PORT > /dev/null 2>&1; then
+            echo "⚠️ 端口 $PROXY_PORT 已被占用！"
+            PID=$(lsof -ti:$PROXY_PORT)
+            PROCESS_NAME=$(ps -p $PID -o comm= 2>/dev/null || echo "unknown")
+            echo "   占用进程: PID $PID ($PROCESS_NAME)"
+            
+            read -p "是否要终止该进程以释放端口 $PROXY_PORT？(y/n): " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy是]$ ]]; then
+                echo "正在终止进程 $PID..."
+                if kill -9 $PID 2>/dev/null; then
+                    echo "✅ 进程 $PID 已终止，端口 $PROXY_PORT 已释放"
+                else
+                    echo "❌ 无法终止进程 $PID，可能需要管理员权限"
+                    echo "请手动终止该进程或使用不同端口"
+                    exit 1
+                fi
+            else
+                echo "❌ 用户选择不终止进程，跳过安装"
+                exit 1
+            fi
+        else
+            echo "✅ 端口 $PROXY_PORT 可用"
+        fi
+        
+        #运行claude-code-proxy
+        cd $CLAUDE_PROXY_DIR/claude-code-proxy
+        uv run claude-code-proxy & sleep 1 && ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN claude 
+    else
+        echo "❌ 未安装 Claude Code Proxy"
+    fi
+fi

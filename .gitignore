@@ -1,0 +1,57 @@
+# macOS 系统文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 临时文件
+*.tmp
+*.temp
+*.log
+*.swp
+*.swo
+*~
+
+# IDE 和编辑器文件
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# 环境变量文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 依赖目录
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# 构建输出
+dist/
+build/
+*.o
+*.so
+*.dylib
+*.exe
+
+# 压缩文件
+*.zip
+*.tar.gz
+*.rar
+
+# 备份文件
+*.bak
+*.backup
+*.old 
