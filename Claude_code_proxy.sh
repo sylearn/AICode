@@ -152,6 +152,7 @@ else
         sed -i '' "s|OPENAI_BASE_URL=.*|OPENAI_BASE_URL=$OPENAI_BASE_URL|" .env # 替换OPENAI_BASE_URL
         sed -i '' "s/BIG_MODEL=.*/BIG_MODEL=$BIG_MODEL/" .env # 替换BIG_MODEL
         sed -i '' "s/SMALL_MODEL=.*/SMALL_MODEL=$SMALL_MODEL/" .env # 替换SMALL_MODEL
+        sed -i '' "s/LOG_LEVEL=.*/LOG_LEVEL=WARNING/" .env # 替换LOG_LEVEL
         # 检查端口是否被占用
         echo "🔍 检查端口 $PROXY_PORT 是否被占用..."
         if lsof -ti:$PROXY_PORT > /dev/null 2>&1; then
