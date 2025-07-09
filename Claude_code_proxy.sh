@@ -34,13 +34,35 @@ OPENAI_API_KEY=sk-** # 你的openai api key
 OPENAI_BASE_URL=https://api.yourdomain.com/v1 # 你的openai base url
 BIG_MODEL="gemini-2.5-pro-preview-06-05" # 大模型
 SMALL_MODEL="gpt-4o-mini" # 小模型
-ATHROPIC_BASE_URL=http://localhost:8082 # 代理地址
 CLAUDE_DIR="$HOME/.claude" # 你的 Claude Code 配置目录
 CLAUDE_PROXY_DIR="$HOME/.claude/proxy" # 你的 Claude Code Proxy 配置目录
 PROXY_PROJECT_DIR="$CLAUDE_PROXY_DIR/claude-code-proxy" # 你的 Claude Code Proxy 项目目录
 PROXY_PORT=8082
 ANTHROPIC_BASE_URL=http://localhost:$PROXY_PORT # 代理地址
 ANTHROPIC_AUTH_TOKEN="api-key" # 代理token，不用改
+CURRENT_DIR=$(cd $(dirname $0); pwd) #当前路径
+# 替换.env文件中的配置
+replace_env_var() {
+  key="$1"
+  value="$2"
+  file="$PROXY_PROJECT_DIR/.env"
+
+  # escape sed special characters in value
+  escaped_value=$(printf '%s\n' "$value" | sed 's/[&/\]/\\&/g')
+
+  # detect platform (Linux or Darwin)
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' "s|^$key=.*|$key=\"$escaped_value\"|" "$file"
+  else
+    sed -i "s|^$key=.*|$key=\"$escaped_value\"|" "$file"
+  fi
+
+  # if key not present, append it
+  if ! grep -q "^$key=" "$file"; then
+    echo "$key=\"$value\"" >> "$file"
+  fi
+}
+
 
 echo "📦 正在检查 Claude Code 是否已安装..."
 # 判断命令是否存在
@@ -94,6 +116,13 @@ fi
 # git clone https://github.com/fuergaosi233/claude-code-proxy
 if [ -d "$PROXY_PROJECT_DIR" ]; then
     echo "✅ Claude Code Proxy 已安装"
+    echo "🔧 正在更新.env配置文件..."
+    #cd $PROXY_PROJECT_DIR
+    replace_env_var "OPENAI_API_KEY" "$OPENAI_API_KEY"
+    replace_env_var "OPENAI_BASE_URL" "$OPENAI_BASE_URL"
+    replace_env_var "BIG_MODEL" "$BIG_MODEL"
+    replace_env_var "SMALL_MODEL" "$SMALL_MODEL"
+    replace_env_var "LOG_LEVEL" "WARNING"
     
     # 检查端口是否被占用
     echo "🔍 检查端口 $PROXY_PORT 是否被占用..."
@@ -134,25 +163,47 @@ if [ -d "$PROXY_PROJECT_DIR" ]; then
     fi
     
     #运行claude-code-proxy
-    cd $PROXY_PROJECT_DIR
-    uv run claude-code-proxy & sleep 1 && ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN claude
+    uv run --directory $PROXY_PROJECT_DIR claude-code-proxy & sleep 1  && ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN claude
 else
     echo "❌ 未检测到 Claude Code Proxy，是否安装？(y/n)"
     read -n 1 -p "请输入(y/n): " INSTALL_PROXY
     if [ "$INSTALL_PROXY" == "y" ]; then
         #在$CLAUDE_PROXY_DIR目录下执行git clone https://github.com/fuergaosi233/claude-code-proxy
-        mkdir -p $CLAUDE_PROXY_DIR
-        cd $CLAUDE_PROXY_DIR
-        git clone git@github.com:fuergaosi233/claude-code-proxy.git
-        cd claude-code-proxy
-        uv sync
-        cp .env.example .env
-        #修改.env文件
-        sed -i '' "s/OPENAI_API_KEY=.*/OPENAI_API_KEY=$OPENAI_API_KEY/" .env # 替换OPENAI_API_KEY
-        sed -i '' "s|OPENAI_BASE_URL=.*|OPENAI_BASE_URL=$OPENAI_BASE_URL|" .env # 替换OPENAI_BASE_URL
-        sed -i '' "s/BIG_MODEL=.*/BIG_MODEL=$BIG_MODEL/" .env # 替换BIG_MODEL
-        sed -i '' "s/SMALL_MODEL=.*/SMALL_MODEL=$SMALL_MODEL/" .env # 替换SMALL_MODEL
-        sed -i '' "s/LOG_LEVEL=.*/LOG_LEVEL=WARNING/" .env # 替换LOG_LEVEL
+        echo "📁 创建代理目录: $CLAUDE_PROXY_DIR"
+        mkdir -p "$CLAUDE_PROXY_DIR"
+        
+        echo "📥 克隆 Claude Code Proxy 项目..."
+        if cd "$CLAUDE_PROXY_DIR"; then
+            git clone https://github.com/fuergaosi233/claude-code-proxy.git
+            
+            echo "🔧 进入项目目录并初始化..."
+            if cd "$PROXY_PROJECT_DIR"; then
+                uv sync
+                cp .env.example .env
+                
+                # 替换.env文件中的OPENAI_API_KEY
+                echo "🔧 正在更新.env配置文件..."
+                replace_env_var "OPENAI_API_KEY" "$OPENAI_API_KEY"
+                replace_env_var "OPENAI_BASE_URL" "$OPENAI_BASE_URL"
+                replace_env_var "BIG_MODEL" "$BIG_MODEL"
+                replace_env_var "SMALL_MODEL" "$SMALL_MODEL"
+                replace_env_var "LOG_LEVEL" "WARNING"
+                
+                echo "✅ Claude Code Proxy 安装完成"
+            else
+                echo "❌ 无法进入项目目录: $PROXY_PROJECT_DIR"
+                # 回到当前路径
+                cd $CURRENT_DIR
+                exit 1
+            fi
+        else
+            echo "❌ 无法创建或进入代理目录: $CLAUDE_PROXY_DIR"
+            # 回到当前路径
+            cd $CURRENT_DIR
+            exit 1
+        fi
+        # 回到当前路径
+        cd $CURRENT_DIR
         # 检查端口是否被占用
         echo "🔍 检查端口 $PROXY_PORT 是否被占用..."
         if lsof -ti:$PROXY_PORT > /dev/null 2>&1; then
@@ -181,8 +232,7 @@ else
         fi
         
         #运行claude-code-proxy
-        cd $CLAUDE_PROXY_DIR/claude-code-proxy
-        uv run claude-code-proxy & sleep 1 && ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN claude 
+        uv run --directory $PROXY_PROJECT_DIR claude-code-proxy & sleep 1 && ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN claude 
     else
         echo "❌ 未安装 Claude Code Proxy"
     fi
