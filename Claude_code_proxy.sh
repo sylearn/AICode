@@ -29,18 +29,32 @@
 # - 配置参数可在下方"设置区域"进行修改
 # ==================================================
 # === 设置区域：可根据需要修改 ===
-CLAUDE_COMMAND="claude"   # 或者 claude，如果你装的是另一个版本
-OPENAI_API_KEY=sk-** # 你的openai api key
-OPENAI_BASE_URL=https://api.yourdomain.com/v1 # 你的openai base url
-BIG_MODEL="gemini-2.5-pro-preview-06-05" # 大模型
-SMALL_MODEL="gpt-4o-mini" # 小模型
-CLAUDE_DIR="$HOME/.claude" # 你的 Claude Code 配置目录
-CLAUDE_PROXY_DIR="$HOME/.claude/proxy" # 你的 Claude Code Proxy 配置目录
-PROXY_PROJECT_DIR="$CLAUDE_PROXY_DIR/claude-code-proxy" # 你的 Claude Code Proxy 项目目录
-PROXY_PORT=8082
-ANTHROPIC_BASE_URL=http://localhost:$PROXY_PORT # 代理地址
-ANTHROPIC_AUTH_TOKEN="api-key" # 代理token，不用改
-CURRENT_DIR=$(cd $(dirname $0); pwd) #当前路径
+# control command and directory
+CLAUDE_COMMAND="claude"   # or claude, if you install another version
+CLAUDE_DIR="$HOME/.claude" # your Claude Code config directory
+CLAUDE_PROXY_DIR="$HOME/.claude/proxy" # your Claude Code Proxy config directory
+PROXY_PROJECT_DIR="$CLAUDE_PROXY_DIR/claude-code-proxy" # your Claude Code Proxy project directory
+CURRENT_DIR=$(cd $(dirname $0); pwd) # current path
+
+# proxy parameters
+HOST="0.0.0.0" # service listen address
+PROXY_PORT=8082 # proxy port
+OPENAI_API_KEY=sk-** # your openai api key
+OPENAI_BASE_URL=https://api.yourdomain.com/v1 # your openai base url
+BIG_MODEL="gemini-2.5-pro-preview-06-05" # big model
+SMALL_MODEL="gpt-4o-mini" # small model
+ANTHROPIC_BASE_URL=http://localhost:$PROXY_PORT # proxy address
+ANTHROPIC_AUTH_TOKEN="api-key" # proxy token, don't change
+LOG_LEVEL="WARNING" # log level
+MAX_TOKENS_LIMIT=65535 #65535 for gemini-2.5-pro-preview-06-05; 4096 for gpt-4o/claude
+MIN_TOKENS_LIMIT=4096 # min tokens limit
+REQUEST_TIMEOUT=90 # request timeout
+MAX_RETRIES=3 # max retries
+
+
+#==================================================
+# 函数定义
+#==================================================
 # 替换.env文件中的配置
 replace_env_var() {
   key="$1"
@@ -118,11 +132,18 @@ if [ -d "$PROXY_PROJECT_DIR" ]; then
     echo "✅ Claude Code Proxy 已安装"
     echo "🔧 正在更新.env配置文件..."
     #cd $PROXY_PROJECT_DIR
+    replace_env_var "HOST" "$HOST"
+    replace_env_var "PROXY_PORT" "$PROXY_PORT"
     replace_env_var "OPENAI_API_KEY" "$OPENAI_API_KEY"
     replace_env_var "OPENAI_BASE_URL" "$OPENAI_BASE_URL"
     replace_env_var "BIG_MODEL" "$BIG_MODEL"
     replace_env_var "SMALL_MODEL" "$SMALL_MODEL"
-    replace_env_var "LOG_LEVEL" "WARNING"
+    replace_env_var "LOG_LEVEL" "$LOG_LEVEL"
+    replace_env_var "MAX_TOKENS_LIMIT" "$MAX_TOKENS_LIMIT"
+    replace_env_var "MIN_TOKENS_LIMIT" "$MIN_TOKENS_LIMIT"
+    replace_env_var "REQUEST_TIMEOUT" "$REQUEST_TIMEOUT"
+    replace_env_var "MAX_RETRIES" "$MAX_RETRIES"
+    echo "✅ Claude Code Proxy .env 配置完成"
     
     # 检查端口是否被占用
     echo "🔍 检查端口 $PROXY_PORT 是否被占用..."
@@ -152,7 +173,7 @@ if [ -d "$PROXY_PROJECT_DIR" ]; then
             read -p "是否直接启动 Claude Code？(y/n): " -n 1 -r
             echo
             if [[ $REPLY =~ ^[Yy是]$ ]]; then
-                ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN claude
+                CLAUDE_CODE_MAX_OUTPUT_TOKENS=$MAX_TOKENS_LIMIT ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN claude
                 exit 0
             else
                 exit 1
@@ -163,7 +184,7 @@ if [ -d "$PROXY_PROJECT_DIR" ]; then
     fi
     
     #运行claude-code-proxy
-    uv run --directory $PROXY_PROJECT_DIR claude-code-proxy & sleep 1  && ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN claude
+    uv run --directory $PROXY_PROJECT_DIR claude-code-proxy & sleep 1  && CLAUDE_CODE_MAX_OUTPUT_TOKENS=$MAX_TOKENS_LIMIT ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN claude
 else
     echo "❌ 未检测到 Claude Code Proxy，是否安装？(y/n)"
     read -n 1 -p "请输入(y/n): " INSTALL_PROXY
@@ -183,13 +204,19 @@ else
                 
                 # 替换.env文件中的OPENAI_API_KEY
                 echo "🔧 正在更新.env配置文件..."
+                replace_env_var "HOST" "$HOST"
+                replace_env_var "PROXY_PORT" "$PROXY_PORT"
                 replace_env_var "OPENAI_API_KEY" "$OPENAI_API_KEY"
                 replace_env_var "OPENAI_BASE_URL" "$OPENAI_BASE_URL"
                 replace_env_var "BIG_MODEL" "$BIG_MODEL"
                 replace_env_var "SMALL_MODEL" "$SMALL_MODEL"
-                replace_env_var "LOG_LEVEL" "WARNING"
+                replace_env_var "LOG_LEVEL" "$LOG_LEVEL"
+                replace_env_var "MAX_TOKENS_LIMIT" "$MAX_TOKENS_LIMIT"
+                replace_env_var "MIN_TOKENS_LIMIT" "$MIN_TOKENS_LIMIT"
+                replace_env_var "REQUEST_TIMEOUT" "$REQUEST_TIMEOUT"
+                replace_env_var "MAX_RETRIES" "$MAX_RETRIES"
                 
-                echo "✅ Claude Code Proxy 安装完成"
+                echo "✅ Claude Code Proxy 配置完成"
             else
                 echo "❌ 无法进入项目目录: $PROXY_PROJECT_DIR"
                 # 回到当前路径
@@ -232,7 +259,7 @@ else
         fi
         
         #运行claude-code-proxy
-        uv run --directory $PROXY_PROJECT_DIR claude-code-proxy & sleep 1 && ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN claude 
+        uv run --directory $PROXY_PROJECT_DIR claude-code-proxy & sleep 1 && CLAUDE_CODE_MAX_OUTPUT_TOKENS=$MAX_TOKENS_LIMIT ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN claude 
     else
         echo "❌ 未安装 Claude Code Proxy"
     fi
