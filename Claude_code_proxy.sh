@@ -38,12 +38,19 @@ CURRENT_DIR=$(cd $(dirname $0); pwd) # current path
 
 # proxy parameters
 HOST="0.0.0.0" # service listen address
+if [[ "$(uname)" == "Darwin" ]]; then
+    # macOS，默认使用 en0 网卡
+    ip=$(ipconfig getifaddr en0)
+else
+    # Linux
+    ip=$(hostname -I | awk '{print $1}')
+fi
 PROXY_PORT=8082 # proxy port
 OPENAI_API_KEY=sk-** # your openai api key
 OPENAI_BASE_URL=https://api.yourdomain.com/v1 # your openai base url
 BIG_MODEL="gemini-2.5-pro-preview-06-05" # big model
 SMALL_MODEL="gpt-4o-mini" # small model
-ANTHROPIC_BASE_URL=http://localhost:$PROXY_PORT # proxy address
+ANTHROPIC_BASE_URL=http://$ip:$PROXY_PORT # proxy address
 ANTHROPIC_AUTH_TOKEN="api-key" # proxy token, don't change
 LOG_LEVEL="WARNING" # log level
 MAX_TOKENS_LIMIT=65535 #65535 for gemini-2.5-pro-preview-06-05; 4096 for gpt-4o/claude
