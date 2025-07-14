@@ -53,10 +53,18 @@ MAX_RETRIES=3 # max retries
 HOST="0.0.0.0" # service listen address
 if [[ "$(uname)" == "Darwin" ]]; then
     # macOS，默认使用 en0 网卡
-    ip=$(ipconfig getifaddr en0)
+    ip=$(ipconfig getifaddr en0 2>/dev/null)
+    # 如果获取失败或为空，使用localhost
+    if [[ -z "$ip" ]]; then
+        ip="localhost"
+    fi
 else
     # Linux
-    ip=$(hostname -I | awk '{print $1}')
+    ip=$(hostname -I 2>/dev/null | awk '{print $1}')
+    # 如果获取失败或为空，使用localhost
+    if [[ -z "$ip" ]]; then
+        ip="localhost"
+    fi
 fi
 
 ANTHROPIC_BASE_URL=http://$ip:$PROXY_PORT # proxy address
