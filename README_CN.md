@@ -258,3 +258,11 @@ AICode/
 3. 提交您的修改 (`git commit -m 'Add some AmazingFeature'`)
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 打开一个 Pull Request
+
+## ⭐ Star 历史
+
+[![Star History Chart](https://api.star-history.com/svg?repos=sylearn/AICode&type=Date)](https://star-history.com/#sylearn/AICode&Date)
+
+---
+
+**感谢您的支持！🙏**

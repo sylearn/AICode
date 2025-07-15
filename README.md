@@ -259,3 +259,11 @@ We welcome your contributions! Please follow these steps:
 3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4.  Push to the branch (`git push origin feature/AmazingFeature`)
 5.  Open a Pull Request
+
+## ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=sylearn/AICode&type=Date)](https://star-history.com/#sylearn/AICode&Date)
+
+---
+
+**Thank you for your support! 🙏**
