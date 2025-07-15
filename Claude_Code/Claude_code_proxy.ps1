@@ -84,21 +84,29 @@ function Set-EnvVar {
         [string]$FilePath
     )
 
-    if (Test-Path $FilePath) {
-        $content = Get-Content $FilePath
-        $found = $false
-        for ($i = 0; $i -lt $content.Length; $i++) {
-            if ($content[$i] -match "^$Key=") {
-                $content[$i] = "$Key=`"$Value`""
-                $found = $true
-                break
-            }
-        }
-        if (-not $found) {
-            $content += "$Key=`"$Value`""
-        }
-        $content | Set-Content $FilePath -Encoding UTF8
+    # 如果文件不存在，创建空文件
+    if (-not (Test-Path $FilePath)) {
+        New-Item -ItemType File -Path $FilePath -Force | Out-Null
+        Write-Host "Created .env file: $FilePath" -ForegroundColor Yellow
     }
+
+    $content = Get-Content $FilePath -ErrorAction SilentlyContinue
+    if (-not $content) {
+        $content = @()
+    }
+
+    $found = $false
+    for ($i = 0; $i -lt $content.Length; $i++) {
+        if ($content[$i] -match "^$Key=") {
+            $content[$i] = "$Key=`"$Value`""
+            $found = $true
+            break
+        }
+    }
+    if (-not $found) {
+        $content += "$Key=`"$Value`""
+    }
+    $content | Set-Content $FilePath -Encoding UTF8
 }
 
 # Check if port is in use

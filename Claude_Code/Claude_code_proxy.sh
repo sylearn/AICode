@@ -79,18 +79,26 @@ replace_env_var() {
   value="$2"
   file="$PROXY_PROJECT_DIR/.env"
 
+  # 如果文件不存在，创建空文件
+  if [ ! -f "$file" ]; then
+    touch "$file"
+    echo "创建 .env 文件: $file" >&2
+  fi
+
   # escape sed special characters in value
   escaped_value=$(printf '%s\n' "$value" | sed 's/[&/\]/\\&/g')
 
-  # detect platform (Linux or Darwin)
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    sed -i '' "s|^$key=.*|$key=\"$escaped_value\"|" "$file"
+  # 检查键是否存在
+  if grep -q "^$key=" "$file"; then
+    # 键存在，更新值
+    # detect platform (Linux or Darwin)
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      sed -i '' "s|^$key=.*|$key=\"$escaped_value\"|" "$file"
+    else
+      sed -i "s|^$key=.*|$key=\"$escaped_value\"|" "$file"
+    fi
   else
-    sed -i "s|^$key=.*|$key=\"$escaped_value\"|" "$file"
-  fi
-
-  # if key not present, append it
-  if ! grep -q "^$key=" "$file"; then
+    # 键不存在，添加新行
     echo "$key=\"$value\"" >> "$file"
   fi
 }
