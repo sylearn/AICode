@@ -477,7 +477,7 @@ if (Test-Path $PROXY_PROJECT_DIR) {
             Set-Location $PROXY_PROJECT_DIR
 
             & uv sync
-            # 创建空的.env文件，而不是复制.env.example
+            # create .env
             New-Item -ItemType File -Path ".env" -Force | Out-Null
             Write-Host "Created empty .env file" -ForegroundColor Yellow
 
