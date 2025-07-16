@@ -84,7 +84,7 @@ function Set-EnvVar {
         [string]$FilePath
     )
 
-    # 如果文件不存在，创建空文件
+    
     if (-not (Test-Path $FilePath)) {
         New-Item -ItemType File -Path $FilePath -Force | Out-Null
         Write-Host "Created .env file: $FilePath" -ForegroundColor Yellow
