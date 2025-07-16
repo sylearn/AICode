@@ -226,7 +226,8 @@ else
             echo "🔧 进入项目目录并初始化..."
             if cd "$PROXY_PROJECT_DIR"; then
                 uv sync
-                cp .env.example .env
+                # 创建空的.env文件，而不是复制.env.example
+                touch .env
                 
                 # 替换.env文件中的OPENAI_API_KEY
                 echo "🔧 正在更新.env配置文件..."

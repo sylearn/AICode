@@ -477,7 +477,9 @@ if (Test-Path $PROXY_PROJECT_DIR) {
             Set-Location $PROXY_PROJECT_DIR
 
             & uv sync
-            Copy-Item ".env.example" ".env"
+            # 创建空的.env文件，而不是复制.env.example
+            New-Item -ItemType File -Path ".env" -Force | Out-Null
+            Write-Host "Created empty .env file" -ForegroundColor Yellow
 
             # Replace OPENAI_API_KEY in .env file
             Write-Host "Updating .env configuration file..." -ForegroundColor Blue
