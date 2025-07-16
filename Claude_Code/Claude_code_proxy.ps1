@@ -90,7 +90,8 @@ function Set-EnvVar {
         Write-Host "Created .env file: $FilePath" -ForegroundColor Yellow
     }
 
-    $content = Get-Content $FilePath -ErrorAction SilentlyContinue
+    # Use explicit array syntax to ensure proper initialization
+    $content = @(Get-Content $FilePath -ErrorAction SilentlyContinue)
     if (-not $content) {
         $content = @()
     }
@@ -104,9 +105,12 @@ function Set-EnvVar {
         }
     }
     if (-not $found) {
-        $content += "$Key=`"$Value`""
+        # Ensure new variables are added as separate array elements
+        $content = $content + @("$Key=`"$Value`"")
     }
-    $content | Set-Content $FilePath -Encoding UTF8
+    
+    # Use Out-File for better line break control and consistent UTF8 encoding
+    $content | Out-File $FilePath -Encoding UTF8
 }
 
 # Check if port is in use
