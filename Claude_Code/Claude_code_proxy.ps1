@@ -90,9 +90,21 @@ function Set-EnvVar {
         Write-Host "Created .env file: $FilePath" -ForegroundColor Yellow
     }
 
-    $content = Get-Content $FilePath -ErrorAction SilentlyContinue
-    if (-not $content) {
-        $content = @()
+    # Read file content and properly handle lines
+    $content = @()
+    if (Test-Path $FilePath) {
+        $rawContent = Get-Content $FilePath -Raw -ErrorAction SilentlyContinue
+        if ($rawContent) {
+            # Split by newlines to get individual lines
+            $lines = $rawContent -split "`r?`n"
+            # Only keep non-empty lines, but preserve the array structure
+            $content = @()
+            foreach ($line in $lines) {
+                if (-not [string]::IsNullOrWhiteSpace($line)) {
+                    $content += $line
+                }
+            }
+        }
     }
 
     $found = $false
@@ -103,9 +115,13 @@ function Set-EnvVar {
             break
         }
     }
+    
     if (-not $found) {
+        # Add new environment variable as a separate line
         $content += "$Key=`"$Value`""
     }
+    
+    # Write content back to file, ensuring each array element becomes a separate line
     $content | Set-Content $FilePath -Encoding UTF8
 }
 
