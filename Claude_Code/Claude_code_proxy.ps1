@@ -93,6 +93,9 @@ function Set-EnvVar {
     $content = Get-Content $FilePath -ErrorAction SilentlyContinue
     if (-not $content) {
         $content = @()
+    } else {
+        # Ensure content is always treated as an array to prevent string concatenation
+        $content = @($content)
     }
 
     $found = $false
@@ -106,7 +109,8 @@ function Set-EnvVar {
     if (-not $found) {
         $content += "$Key=`"$Value`""
     }
-    $content | Set-Content $FilePath -Encoding UTF8
+    # Use Out-File instead of Set-Content for better line break handling
+    $content | Out-File -FilePath $FilePath -Encoding UTF8 -Force
 }
 
 # Check if port is in use
