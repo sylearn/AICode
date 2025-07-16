@@ -76,37 +76,38 @@ $ANTHROPIC_BASE_URL = "http://$ip`:$PROXY_PORT" # proxy address
 # Function Definitions
 #==================================================
 
-# Replace configuration in .env file
-function Set-EnvVar {
+# Create a fresh .env file with all required configurations
+function New-EnvFile {
     param(
-        [string]$Key,
-        [string]$Value,
         [string]$FilePath
     )
 
-    
-    if (-not (Test-Path $FilePath)) {
-        New-Item -ItemType File -Path $FilePath -Force | Out-Null
-        Write-Host "Created .env file: $FilePath" -ForegroundColor Yellow
+    Write-Host "Creating fresh .env configuration file..." -ForegroundColor Blue
+
+    # Remove existing .env file if it exists
+    if (Test-Path $FilePath) {
+        Remove-Item $FilePath -Force
+        Write-Host "Removed existing .env file: $FilePath" -ForegroundColor Yellow
     }
 
-    $content = Get-Content $FilePath -ErrorAction SilentlyContinue
-    if (-not $content) {
-        $content = @()
-    }
+    # Create new .env file with all configurations
+    $envContent = @(
+        "HOST=`"$PROXY_HOST`"",
+        "PORT=`"$PROXY_PORT`"",
+        "OPENAI_API_KEY=`"$OPENAI_API_KEY`"",
+        "OPENAI_BASE_URL=`"$OPENAI_BASE_URL`"",
+        "BIG_MODEL=`"$BIG_MODEL`"",
+        "SMALL_MODEL=`"$SMALL_MODEL`"",
+        "MAX_TOKENS_LIMIT=`"$MAX_TOKENS_LIMIT`"",
+        "LOG_LEVEL=`"$LOG_LEVEL`"",
+        "REQUEST_TIMEOUT=`"$REQUEST_TIMEOUT`"",
+        "MAX_RETRIES=`"$MAX_RETRIES`""
+    )
 
-    $found = $false
-    for ($i = 0; $i -lt $content.Length; $i++) {
-        if ($content[$i] -match "^$Key=") {
-            $content[$i] = "$Key=`"$Value`""
-            $found = $true
-            break
-        }
-    }
-    if (-not $found) {
-        $content += "$Key=`"$Value`""
-    }
-    $content | Set-Content $FilePath -Encoding UTF8
+    # Write content to file
+    $envContent | Set-Content $FilePath -Encoding UTF8
+    Write-Host "Created new .env file: $FilePath" -ForegroundColor Green
+    Write-Host "Configuration completed - Big Model: $BIG_MODEL, Max Tokens: $MAX_TOKENS_LIMIT" -ForegroundColor Cyan
 }
 
 # Check if port is in use
@@ -280,23 +281,12 @@ Write-Host ""
 # git clone https://github.com/fuergaosi233/claude-code-proxy
 if (Test-Path $PROXY_PROJECT_DIR) {
     Write-Host "Claude Code Proxy is installed" -ForegroundColor Green
-    Write-Host "Updating .env configuration file..." -ForegroundColor Blue
-    #cd $PROXY_PROJECT_DIR
+
+    # Create fresh .env file with current configuration
     $envFile = Join-Path $PROXY_PROJECT_DIR ".env"
-    Set-EnvVar "HOST" $PROXY_HOST $envFile
-    Set-EnvVar "PORT" $PROXY_PORT $envFile
-    Set-EnvVar "OPENAI_API_KEY" $OPENAI_API_KEY $envFile
-    Set-EnvVar "OPENAI_BASE_URL" $OPENAI_BASE_URL $envFile
-    Set-EnvVar "BIG_MODEL" $BIG_MODEL $envFile
-    Set-EnvVar "SMALL_MODEL" $SMALL_MODEL $envFile
-    Set-EnvVar "LOG_LEVEL" $LOG_LEVEL $envFile
-    Set-EnvVar "MAX_TOKENS_LIMIT" $MAX_TOKENS_LIMIT $envFile
-    Set-EnvVar "REQUEST_TIMEOUT" $REQUEST_TIMEOUT $envFile
-    Set-EnvVar "MAX_RETRIES" $MAX_RETRIES $envFile
+    New-EnvFile -FilePath $envFile
+
     Write-Host "Claude Code Proxy .env configuration completed" -ForegroundColor Green
-    Write-Host "   Current model: $BIG_MODEL" -ForegroundColor Cyan
-    Write-Host "   Token limit: $MAX_TOKENS_LIMIT" -ForegroundColor Cyan
-    Write-Host ""
 
     # Check if port is in use
     Write-Host "Checking if port $PROXY_PORT is in use..." -ForegroundColor Blue
@@ -477,38 +467,22 @@ if (Test-Path $PROXY_PROJECT_DIR) {
             Set-Location $PROXY_PROJECT_DIR
 
             & uv sync
-            # create .env
-            New-Item -ItemType File -Path ".env" -Force | Out-Null
-            Write-Host "Created empty .env file" -ForegroundColor Yellow
 
-            # Replace OPENAI_API_KEY in .env file
-            Write-Host "Updating .env configuration file..." -ForegroundColor Blue
+            # Create fresh .env file with all configurations
             $envFile = Join-Path $PROXY_PROJECT_DIR ".env"
-            Set-EnvVar "HOST" $PROXY_HOST $envFile
-            Set-EnvVar "PORT" $PROXY_PORT $envFile
-            Set-EnvVar "OPENAI_API_KEY" $OPENAI_API_KEY $envFile
-            Set-EnvVar "OPENAI_BASE_URL" $OPENAI_BASE_URL $envFile
-            Set-EnvVar "BIG_MODEL" $BIG_MODEL $envFile
-            Set-EnvVar "SMALL_MODEL" $SMALL_MODEL $envFile
-            Set-EnvVar "LOG_LEVEL" $LOG_LEVEL $envFile
-            Set-EnvVar "MAX_TOKENS_LIMIT" $MAX_TOKENS_LIMIT $envFile
-            Set-EnvVar "REQUEST_TIMEOUT" $REQUEST_TIMEOUT $envFile
-            Set-EnvVar "MAX_RETRIES" $MAX_RETRIES $envFile
+            New-EnvFile -FilePath $envFile
 
             Write-Host "Claude Code Proxy configuration completed" -ForegroundColor Green
-            Write-Host "    Configured model: $BIG_MODEL" -ForegroundColor Cyan
-            Write-Host "    Token limit: $MAX_TOKENS_LIMIT" -ForegroundColor Cyan
-            Write-Host ""
+
+            # Return to original directory to ensure proper execution context
+            Set-Location $CURRENT_DIR
         } catch {
             Write-Host "Error occurred during installation: $($_.Exception.Message)" -ForegroundColor Red
-            # Return to current path
             Set-Location $CURRENT_DIR
             Read-Host "Press any key to exit"
             exit 1
         }
 
-        # Return to current path
-        Set-Location $CURRENT_DIR
         # Check if port is being used
         Write-Host "Checking if port $PROXY_PORT is in use..." -ForegroundColor Blue
         if (Test-PortInUse -Port $PROXY_PORT) {
@@ -552,7 +526,9 @@ if (Test-Path $PROXY_PROJECT_DIR) {
         Write-Host ""
 
         # Run claude-code-proxy
-        Write-Host "Starting proxy service and Claude Code..." -ForegroundColor Green
+        Write-Host ""
+        Write-Host "========================================================"
+        Write-Host "           Starting Proxy Service and Claude Code"
         Write-Host "========================================================"
         Write-Host "    Large model: $BIG_MODEL" -ForegroundColor Cyan
         Write-Host "    Small model: $SMALL_MODEL" -ForegroundColor Cyan
@@ -560,7 +536,25 @@ if (Test-Path $PROXY_PROJECT_DIR) {
         Write-Host "    Max tokens: $MAX_TOKENS_LIMIT" -ForegroundColor Cyan
         Write-Host "    Request timeout: ${REQUEST_TIMEOUT} seconds" -ForegroundColor Magenta
         Write-Host "    Max retries: $MAX_RETRIES" -ForegroundColor Magenta
+        Write-Host "    Project directory: $PROXY_PROJECT_DIR" -ForegroundColor Gray
+        Write-Host "    Current directory: $(Get-Location)" -ForegroundColor Gray
         Write-Host ""
+
+        # Verify project setup before starting
+        if (-not (Test-Path $PROXY_PROJECT_DIR)) {
+            Write-Host "Error: Project directory not found: $PROXY_PROJECT_DIR" -ForegroundColor Red
+            Read-Host "Press any key to exit"
+            exit 1
+        }
+
+        $envFile = Join-Path $PROXY_PROJECT_DIR ".env"
+        if (-not (Test-Path $envFile)) {
+            Write-Host "Error: .env file not found: $envFile" -ForegroundColor Red
+            Read-Host "Press any key to exit"
+            exit 1
+        }
+
+        Write-Host "✅ Project setup verified" -ForegroundColor Green
 
         # Set environment variables and start proxy service and Claude Code
         $env:CLAUDE_CODE_MAX_OUTPUT_TOKENS = $MAX_TOKENS_LIMIT

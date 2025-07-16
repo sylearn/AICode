@@ -73,34 +73,35 @@ ANTHROPIC_BASE_URL=http://$ip:$PROXY_PORT # proxy address
 #==================================================
 # 函数定义
 #==================================================
-# 替换.env文件中的配置
-replace_env_var() {
-  key="$1"
-  value="$2"
-  file="$PROXY_PROJECT_DIR/.env"
+# 创建全新的.env文件，包含所有必需的配置
+create_env_file() {
+  local env_file="$PROXY_PROJECT_DIR/.env"
 
-  # 如果文件不存在，创建空文件
-  if [ ! -f "$file" ]; then
-    touch "$file"
-    echo "创建 .env 文件: $file" >&2
+  echo "🔧 正在创建全新的.env配置文件..."
+
+  # 删除现有的.env文件（如果存在）
+  if [ -f "$env_file" ]; then
+    rm "$env_file"
+    echo "已删除现有的.env文件: $env_file"
   fi
 
-  # escape sed special characters in value
-  escaped_value=$(printf '%s\n' "$value" | sed 's/[&/\]/\\&/g')
+  # 创建新的.env文件，包含所有配置
+  cat > "$env_file" << EOF
+HOST="$HOST"
+PROXY_PORT="$PROXY_PORT"
+OPENAI_API_KEY="$OPENAI_API_KEY"
+OPENAI_BASE_URL="$OPENAI_BASE_URL"
+BIG_MODEL="$BIG_MODEL"
+SMALL_MODEL="$SMALL_MODEL"
+LOG_LEVEL="$LOG_LEVEL"
+MAX_TOKENS_LIMIT="$MAX_TOKENS_LIMIT"
+MIN_TOKENS_LIMIT="$MIN_TOKENS_LIMIT"
+REQUEST_TIMEOUT="$REQUEST_TIMEOUT"
+MAX_RETRIES="$MAX_RETRIES"
+EOF
 
-  # 检查键是否存在
-  if grep -q "^$key=" "$file"; then
-    # 键存在，更新值
-    # detect platform (Linux or Darwin)
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-      sed -i '' "s|^$key=.*|$key=\"$escaped_value\"|" "$file"
-    else
-      sed -i "s|^$key=.*|$key=\"$escaped_value\"|" "$file"
-    fi
-  else
-    # 键不存在，添加新行
-    echo "$key=\"$value\"" >> "$file"
-  fi
+  echo "✅ 已创建新的.env文件: $env_file"
+  echo "配置完成 - 大模型: $BIG_MODEL, 最大令牌: $MAX_TOKENS_LIMIT"
 }
 
 
@@ -156,19 +157,10 @@ fi
 # git clone https://github.com/fuergaosi233/claude-code-proxy
 if [ -d "$PROXY_PROJECT_DIR" ]; then
     echo "✅ Claude Code Proxy 已安装"
-    echo "🔧 正在更新.env配置文件..."
-    #cd $PROXY_PROJECT_DIR
-    replace_env_var "HOST" "$HOST"
-    replace_env_var "PROXY_PORT" "$PROXY_PORT"
-    replace_env_var "OPENAI_API_KEY" "$OPENAI_API_KEY"
-    replace_env_var "OPENAI_BASE_URL" "$OPENAI_BASE_URL"
-    replace_env_var "BIG_MODEL" "$BIG_MODEL"
-    replace_env_var "SMALL_MODEL" "$SMALL_MODEL"
-    replace_env_var "LOG_LEVEL" "$LOG_LEVEL"
-    replace_env_var "MAX_TOKENS_LIMIT" "$MAX_TOKENS_LIMIT"
-    replace_env_var "MIN_TOKENS_LIMIT" "$MIN_TOKENS_LIMIT"
-    replace_env_var "REQUEST_TIMEOUT" "$REQUEST_TIMEOUT"
-    replace_env_var "MAX_RETRIES" "$MAX_RETRIES"
+
+    # 创建全新的.env文件
+    create_env_file
+
     echo "✅ Claude Code Proxy .env 配置完成"
     
     # 检查端口是否被占用
@@ -208,7 +200,17 @@ if [ -d "$PROXY_PROJECT_DIR" ]; then
     else
         echo "✅ 端口 $PROXY_PORT 可用"
     fi
-    
+
+    echo ""
+    echo "========================================================"
+    echo "           启动代理服务和 Claude Code"
+    echo "========================================================"
+    echo "    大模型: $BIG_MODEL"
+    echo "    小模型: $SMALL_MODEL"
+    echo "    代理地址: $ANTHROPIC_BASE_URL"
+    echo "    最大令牌: $MAX_TOKENS_LIMIT"
+    echo ""
+
     #运行claude-code-proxy
     uv run --directory $PROXY_PROJECT_DIR claude-code-proxy & sleep 1  && CLAUDE_CODE_MAX_OUTPUT_TOKENS=$MAX_TOKENS_LIMIT ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN claude
 else
@@ -226,23 +228,13 @@ else
             echo "🔧 进入项目目录并初始化..."
             if cd "$PROXY_PROJECT_DIR"; then
                 uv sync
-                # 创建空的.env文件，而不是复制.env.example
-                touch .env
-                
-                # 替换.env文件中的OPENAI_API_KEY
-                echo "🔧 正在更新.env配置文件..."
-                replace_env_var "HOST" "$HOST"
-                replace_env_var "PROXY_PORT" "$PROXY_PORT"
-                replace_env_var "OPENAI_API_KEY" "$OPENAI_API_KEY"
-                replace_env_var "OPENAI_BASE_URL" "$OPENAI_BASE_URL"
-                replace_env_var "BIG_MODEL" "$BIG_MODEL"
-                replace_env_var "SMALL_MODEL" "$SMALL_MODEL"
-                replace_env_var "LOG_LEVEL" "$LOG_LEVEL"
-                replace_env_var "MAX_TOKENS_LIMIT" "$MAX_TOKENS_LIMIT"
-                replace_env_var "MIN_TOKENS_LIMIT" "$MIN_TOKENS_LIMIT"
-                replace_env_var "REQUEST_TIMEOUT" "$REQUEST_TIMEOUT"
-                replace_env_var "MAX_RETRIES" "$MAX_RETRIES"
-                
+
+                # 回到原始目录以确保正确的执行上下文
+                cd "$CURRENT_DIR"
+
+                # 创建全新的.env文件
+                create_env_file
+
                 echo "✅ Claude Code Proxy 配置完成"
             else
                 echo "❌ 无法进入项目目录: $PROXY_PROJECT_DIR"
@@ -284,9 +276,34 @@ else
         else
             echo "✅ 端口 $PROXY_PORT 可用"
         fi
-        
+
+        echo ""
+        echo "========================================================"
+        echo "           启动代理服务和 Claude Code"
+        echo "========================================================"
+        echo "    大模型: $BIG_MODEL"
+        echo "    小模型: $SMALL_MODEL"
+        echo "    代理地址: $ANTHROPIC_BASE_URL"
+        echo "    最大令牌: $MAX_TOKENS_LIMIT"
+        echo "    项目目录: $PROXY_PROJECT_DIR"
+        echo "    当前目录: $(pwd)"
+        echo ""
+
+        # 验证项目设置
+        if [ ! -d "$PROXY_PROJECT_DIR" ]; then
+            echo "❌ 错误: 项目目录不存在: $PROXY_PROJECT_DIR"
+            exit 1
+        fi
+
+        if [ ! -f "$PROXY_PROJECT_DIR/.env" ]; then
+            echo "❌ 错误: .env文件不存在: $PROXY_PROJECT_DIR/.env"
+            exit 1
+        fi
+
+        echo "✅ 项目设置验证通过"
+
         #运行claude-code-proxy
-        uv run --directory $PROXY_PROJECT_DIR claude-code-proxy & sleep 1 && CLAUDE_CODE_MAX_OUTPUT_TOKENS=$MAX_TOKENS_LIMIT ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN claude 
+        uv run --directory $PROXY_PROJECT_DIR claude-code-proxy & sleep 1 && CLAUDE_CODE_MAX_OUTPUT_TOKENS=$MAX_TOKENS_LIMIT ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN claude
     else
         echo "❌ 未安装 Claude Code Proxy"
     fi
