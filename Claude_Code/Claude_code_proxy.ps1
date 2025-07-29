@@ -45,7 +45,7 @@ $OPENAI_BASE_URL = "https://api.yourdomain.com/v1" # your openai base url
 
 $BIG_MODEL = "claude-sonnet-4" # big model
 $SMALL_MODEL = "gpt-4o-mini" # small model
-$MAX_TOKENS_LIMIT = 64000 # max tokens limit    
+$MAX_TOKENS_LIMIT = 32000 # max tokens limit（< 32000）
 $ANTHROPIC_AUTH_TOKEN = "api-key" # proxy token, don't change
 $LOG_LEVEL = "WARNING" # log level
 $REQUEST_TIMEOUT = 120 # request timeout

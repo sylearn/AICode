@@ -44,8 +44,7 @@ SMALL_MODEL="gpt-4o-mini" # small model
 
 ANTHROPIC_AUTH_TOKEN="api-key" # proxy token, don't change
 LOG_LEVEL="WARNING" # log level
-MAX_TOKENS_LIMIT=65535 #65535 for gemini-2.5-pro-preview-06-05; 4096 for gpt-4o/claude
-MIN_TOKENS_LIMIT=4096 # min tokens limit
+MAX_TOKENS_LIMIT=32000 # max tokens limit（< 32000）
 REQUEST_TIMEOUT=90 # request timeout
 MAX_RETRIES=3 # max retries
 
@@ -95,7 +94,6 @@ BIG_MODEL="$BIG_MODEL"
 SMALL_MODEL="$SMALL_MODEL"
 LOG_LEVEL="$LOG_LEVEL"
 MAX_TOKENS_LIMIT="$MAX_TOKENS_LIMIT"
-MIN_TOKENS_LIMIT="$MIN_TOKENS_LIMIT"
 REQUEST_TIMEOUT="$REQUEST_TIMEOUT"
 MAX_RETRIES="$MAX_RETRIES"
 EOF

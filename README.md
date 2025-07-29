@@ -169,7 +169,7 @@ SMALL_MODEL="gpt-4o-mini"                 # Small model name
 ```bash
 # Proxy service configuration
 HOST="0.0.0.0"                           # Service listening address
-MAX_TOKENS_LIMIT=65535                    # Max token limit
+MAX_TOKENS_LIMIT=32000                    # Max token limit（< 32000）
 REQUEST_TIMEOUT=90                        # Request timeout
 MAX_RETRIES=3                            # Max retries
 ```

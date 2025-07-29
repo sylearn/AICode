@@ -168,7 +168,7 @@ SMALL_MODEL="gpt-4o-mini"                 # 小模型名称
 ```bash
 # 代理服务配置
 HOST="0.0.0.0"                           # 服务监听地址
-MAX_TOKENS_LIMIT=65535                    # 最大 Token 限制
+MAX_TOKENS_LIMIT=32000                    # 最大 Token 限制（< 32000）
 REQUEST_TIMEOUT=90                        # 请求超时时间
 MAX_RETRIES=3                            # 最大重试次数
 ```
