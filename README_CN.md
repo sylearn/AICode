@@ -6,6 +6,139 @@
 
 一个全面的 AI 相关实用脚本集合，旨在简化 AI 开发工作流程并自动化常见任务。
 
+## 🤖 WXn8n 微信机器人
+
+### 🚀 功能概述
+
+WXn8n 是一个连接微信和 N8N 工作流的智能机器人，支持：
+
+- 🔗 **N8N 集成** - 无缝连接 N8N 工作流平台
+- 💬 **智能对话** - 支持文本消息的 AI 智能回复
+- 📁 **文件处理** - 自动处理图片、文档等文件类型
+- 👥 **群聊管理** - 支持群聊权限控制和用户管理
+- ⚡ **命令系统** - 内置丰富的命令功能（/help、/ps等）
+- 🔄 **实时监听** - 实时监听指定用户和群组消息
+- 🛡️ **安全认证** - 支持 Webhook 认证和权限控制
+
+### 🖥️ 系统架构
+
+```mermaid
+graph TD
+A["收到消息"] --> B["MessageContext"]
+B --> C["process_message()"]
+
+C --> D{文件消息?}
+D -->|是| E["MessageHandler.handle_file_message()"]
+E --> F["保存文件并回复"]
+
+D -->|否| G{群聊权限检查}
+G -->|无权限| H["静默处理"]
+G -->|有权限| I{是命令?}
+
+I -->|是| J["CommandSystem.has_command()"]
+J -->|找到| K["CommandSystem.execute_command()"]
+J -->|未找到| L["ResponseManager.handle_unknown_command()"]
+
+I -->|否| M["MessageHandler.build_content()"]
+M --> N["ResponseManager.send_ai_response()"]
+
+K --> O{"/ps命令?"}
+K --> P{"/help命令?"}
+K --> Q["其他命令..."]
+
+O --> R["handle_ps_command()"]
+P --> S["handle_help_command()"]
+
+style A fill:#e1f5fe
+style C fill:#f3e5f5
+style J fill:#e8f5e8
+style R fill:#fff3e0
+style S fill:#fff3e0
+```
+
+### 💡 主要特性
+
+#### 🔍 智能消息处理
+
+- 自动识别消息类型（文本、图片、文件等）
+- 支持群聊和私聊场景
+- 智能权限管理和用户白名单
+
+#### 📦 N8N 工作流集成
+
+- **Webhook 触发**: 通过 Webhook 与 N8N 无缝集成
+- **文件上传**: 支持向 N8N 发送文件进行处理
+- **响应处理**: 自动处理 N8N 返回的结果和文件
+
+#### 🔧 灵活配置管理
+
+- 环境变量配置支持
+- 支持测试和生产环境切换
+- 可配置监听用户和群组列表
+- 自定义超时和认证设置
+
+### 🚀 快速开始
+
+#### 1. 环境准备
+
+```bash
+# 进入项目目录
+cd AICode/wxn8n
+
+# 安装依赖（使用 uv 包管理器）
+uv sync
+```
+
+#### 2. 配置设置
+
+```bash
+# 复制配置模板
+cp config.env.template config.env
+
+# 编辑配置文件
+# 配置 N8N Webhook URL、监听用户列表等
+```
+
+#### 3. 运行机器人
+
+```bash
+# 激活虚拟环境并运行
+uv run python main.py
+```
+
+### ⚙️ 配置说明
+
+#### 主要配置参数
+
+```bash
+# 基础配置
+SAVE_PATH=                    # 文件保存路径
+LOG_LEVEL=INFO               # 日志级别
+LISTEN_INTERVAL=1            # 监听间隔时间
+
+# N8N 集成配置
+WEBHOOK_TEST_URL=            # 测试环境 Webhook URL
+WEBHOOK_PROD_URL=            # 生产环境 Webhook URL
+AUTH_HEADER_KEY=             # 认证头键名
+AUTH_HEADER_VALUE=           # 认证头值
+
+# 监听配置
+LISTEN_USERS=                # 监听用户列表（逗号分隔）
+LISTEN_GROUPS=               # 监听群组列表（逗号分隔）
+GROUP_PLUS_USERS=            # 群组特权用户列表
+
+# 超时设置
+REQUEST_TIMEOUT=300          # 请求超时时间
+IMG_DOWNLOAD_TIMEOUT=30      # 图片下载超时时间
+```
+
+### 📋 系统要求
+
+- **Python**: 3.12+
+- **依赖**: wxauto>=39.1.15
+- **系统**: Windows（微信PC版）
+- **N8N**: 已配置的 N8N 工作流实例
+
 ## 🔧 Claude Code 自动化部署工具
 
 ### 🚀 功能概述
@@ -243,6 +376,16 @@ AICode/
 ├── Claude_Code/
 │   ├── Claude_code_proxy.sh      # Linux/macOS 脚本
 │   └── Claude_code_proxy.ps1     # Windows 脚本
+├── wxn8n/                        # WXn8n 微信机器人
+│   ├── assets/                   # 资源文件
+│   ├── config.env.template       # 配置文件模板
+│   ├── config.py                 # 配置管理
+│   ├── connect_n8n.py           # N8N 连接模块
+│   ├── main.py                  # 主程序入口
+│   ├── wechat_msg.py            # 微信消息处理
+│   ├── pyproject.toml           # Python 项目配置
+│   ├── uv.lock                  # 依赖锁定文件
+│   └── README.md                # 项目说明文档
 ├── README.md                     # 英文文档
 ├── README_CN.md                  # 中文文档
 ├── License                       # MIT 许可证

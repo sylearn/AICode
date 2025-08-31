@@ -7,6 +7,139 @@
 
 A comprehensive collection of practical AI-related scripts designed to simplify AI development workflows and automate common tasks.
 
+## 🤖 WXn8n WeChat Bot
+
+### 🚀 Features Overview
+
+WXn8n is an intelligent bot that connects WeChat with N8N workflow platform, supporting:
+
+- 🔗 **N8N Integration** - Seamless connection with N8N workflow platform
+- 💬 **Smart Conversations** - AI-powered intelligent replies for text messages
+- 📁 **File Processing** - Automatic handling of images, documents, and other file types
+- 👥 **Group Management** - Group chat permission control and user management
+- ⚡ **Command System** - Rich built-in command functionality (/help, /ps, etc.)
+- 🔄 **Real-time Monitoring** - Real-time monitoring of specified users and groups
+- 🛡️ **Security Authentication** - Webhook authentication and permission control support
+
+### 🖥️ System Architecture
+
+```mermaid
+graph TD
+A["Receive Message"] --> B["MessageContext"]
+B --> C["process_message()"]
+
+C --> D{File Message?}
+D -->|Yes| E["MessageHandler.handle_file_message()"]
+E --> F["Save File and Reply"]
+
+D -->|No| G{Group Permission Check}
+G -->|No Permission| H["Silent Processing"]
+G -->|Has Permission| I{Is Command?}
+
+I -->|Yes| J["CommandSystem.has_command()"]
+J -->|Found| K["CommandSystem.execute_command()"]
+J -->|Not Found| L["ResponseManager.handle_unknown_command()"]
+
+I -->|No| M["MessageHandler.build_content()"]
+M --> N["ResponseManager.send_ai_response()"]
+
+K --> O{"/ps Command?"}
+K --> P{"/help Command?"}
+K --> Q["Other Commands..."]
+
+O --> R["handle_ps_command()"]
+P --> S["handle_help_command()"]
+
+style A fill:#e1f5fe
+style C fill:#f3e5f5
+style J fill:#e8f5e8
+style R fill:#fff3e0
+style S fill:#fff3e0
+```
+
+### 💡 Key Features
+
+#### 🔍 Intelligent Message Processing
+
+- Automatic message type recognition (text, images, files, etc.)
+- Support for both group and private chat scenarios
+- Smart permission management and user whitelist
+
+#### 📦 N8N Workflow Integration
+
+- **Webhook Triggers**: Seamless integration with N8N via webhooks
+- **File Upload**: Support for sending files to N8N for processing
+- **Response Handling**: Automatic processing of N8N results and files
+
+#### 🔧 Flexible Configuration Management
+
+- Environment variable configuration support
+- Support for test and production environment switching
+- Configurable monitoring user and group lists
+- Custom timeout and authentication settings
+
+### 🚀 Quick Start
+
+#### 1. Environment Setup
+
+```bash
+# Navigate to project directory
+cd AICode/wxn8n
+
+# Install dependencies (using uv package manager)
+uv sync
+```
+
+#### 2. Configuration Setup
+
+```bash
+# Copy configuration template
+cp config.env.template config.env
+
+# Edit configuration file
+# Configure N8N Webhook URL, monitoring user list, etc.
+```
+
+#### 3. Run the Bot
+
+```bash
+# Activate virtual environment and run
+uv run python main.py
+```
+
+### ⚙️ Configuration Details
+
+#### Main Configuration Parameters
+
+```bash
+# Basic Configuration
+SAVE_PATH=                    # File save path
+LOG_LEVEL=INFO               # Log level
+LISTEN_INTERVAL=1            # Listening interval
+
+# N8N Integration Configuration
+WEBHOOK_TEST_URL=            # Test environment Webhook URL
+WEBHOOK_PROD_URL=            # Production environment Webhook URL
+AUTH_HEADER_KEY=             # Authentication header key
+AUTH_HEADER_VALUE=           # Authentication header value
+
+# Monitoring Configuration
+LISTEN_USERS=                # Monitoring user list (comma-separated)
+LISTEN_GROUPS=               # Monitoring group list (comma-separated)
+GROUP_PLUS_USERS=            # Group privileged user list
+
+# Timeout Settings
+REQUEST_TIMEOUT=300          # Request timeout
+IMG_DOWNLOAD_TIMEOUT=30      # Image download timeout
+```
+
+### 📋 System Requirements
+
+- **Python**: 3.12+
+- **Dependencies**: wxauto>=39.1.15
+- **System**: Windows (WeChat PC version)
+- **N8N**: Configured N8N workflow instance
+
 ## 🔧 Claude Code Automated Deployment Tool
 
 ### 🚀 Features Overview
@@ -244,6 +377,16 @@ AICode/
 ├── Claude_Code/
 │   ├── Claude_code_proxy.sh      # Linux/macOS script
 │   └── Claude_code_proxy.ps1     # Windows script
+├── wxn8n/                        # WXn8n WeChat Bot
+│   ├── assets/                   # Asset files
+│   ├── config.env.template       # Configuration template
+│   ├── config.py                 # Configuration management
+│   ├── connect_n8n.py           # N8N connection module
+│   ├── main.py                  # Main program entry
+│   ├── wechat_msg.py            # WeChat message processing
+│   ├── pyproject.toml           # Python project configuration
+│   ├── uv.lock                  # Dependency lock file
+│   └── README.md                # Project documentation
 ├── README.md                     # English documentation
 ├── README_CN.md                  # Chinese documentation
 ├── License                       # MIT License
