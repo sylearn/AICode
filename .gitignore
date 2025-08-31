@@ -13,7 +13,8 @@ Thumbs.db
 *.log
 *.swp
 *.swo
-*~
+*.env
+
 
 # IDE 和编辑器文件
 .vscode/

@@ -1,0 +1,9 @@
+[project]
+name = "wechatbot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "wxauto>=39.1.15",
+]
