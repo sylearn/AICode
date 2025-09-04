@@ -159,6 +159,87 @@ IMG_DOWNLOAD_TIMEOUT=30      # 图片下载超时时间
 | 🐧 **Linux/macOS** | `Claude_code_proxy.sh` | 适用于 Unix 系统的 Bash 脚本 |
 | 🪟 **Windows** | `Claude_code_proxy.ps1` | 适用于 PowerShell 的脚本 |
 
+## 🔌 Copilot-API 代理服务
+
+### 🚀 功能概述
+
+copilot-api 是一个代理服务，用于将 GitHub Copilot 的 API 调用转发到 Claude Code，支持：
+
+- 🔄 **API 代理转发** - 将 GitHub Copilot API 调用无缝转发到 Claude Code
+- 🔑 **GitHub 认证** - 支持 GitHub 设备授权流程
+- 🎯 **模型映射** - 自动映射 GitHub Copilot 模型到对应的 Claude 模型
+- ⚡ **本地部署** - 在本地运行代理服务，保护隐私
+- 🛠️ **简单配置** - 一键安装和配置，快速上手
+- 🌐 **兼容性强** - 完全兼容 GitHub Copilot API 接口
+
+### 💡 工作原理
+
+```mermaid
+graph LR
+A["GitHub Copilot Client"] --> B["copilot-api 代理服务<br/>(localhost:4141)"]
+B --> C["Claude Code"]
+C --> D["Claude API"]
+
+style B fill:#e1f5fe
+style C fill:#f3e5f5
+style D fill:#e8f5e8
+```
+
+### 🛠️ 安装配置
+
+#### 1. 安装依赖
+
+确保系统已安装 Node.js，然后安装必要工具：
+
+```bash
+# 安装 copilot-api
+npm install -g copilot-api
+
+# 安装 Claude Code
+npm install -g @anthropic-ai/claude-code
+```
+
+#### 2. 启动代理服务
+
+打开第一个终端，启动代理服务：
+
+```bash
+copilot-api start
+```
+
+系统会提示进行 GitHub 授权，按提示访问页面输入设备码完成授权。
+
+#### 3. 配置 Claude Code
+
+在 `~/.claude/settings.json` 中添加配置：
+
+```json
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:4141",
+    "ANTHROPIC_AUTH_TOKEN": "dummy",
+    "ANTHROPIC_MODEL": "claude-sonnet-4",
+    "ANTHROPIC_SMALL_FAST_MODEL": "claude-3.7-sonnet",
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+  }
+}
+```
+
+#### 4. 启动 Claude Code
+
+在第二个终端执行：
+
+```bash
+claude
+```
+
+### 📋 系统要求
+
+- **Node.js**: 16.0+
+- **GitHub 账号**: 需要 GitHub Copilot 访问权限
+- **网络连接**: 稳定的互联网连接用于认证
+
 ## 🚀 快速开始
 
 ### 1. 克隆项目
@@ -371,11 +452,12 @@ npm install -g @anthropic-ai/claude-code
 
 ## 📁 项目结构
 
-```
+```text
 AICode/
 ├── Claude_Code/
 │   ├── Claude_code_proxy.sh      # Linux/macOS 脚本
-│   └── Claude_code_proxy.ps1     # Windows 脚本
+│   ├── Claude_code_proxy.ps1     # Windows 脚本
+│   └── copilot_api.md            # Copilot-API 代理服务配置教程
 ├── wxn8n/                        # WXn8n 微信机器人
 │   ├── assets/                   # 资源文件
 │   ├── config.env.template       # 配置文件模板

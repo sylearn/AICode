@@ -160,6 +160,87 @@ This is a toolset for automating the deployment of Claude Code and Claude Code P
 | 🐧 **Linux/macOS** | `Claude_code_proxy.sh` | Bash script for Unix-like systems |
 | 🪟 **Windows** | `Claude_code_proxy.ps1` | PowerShell script for Windows |
 
+## 🔌 Copilot-API Proxy Service
+
+### 🚀 Features Overview
+
+copilot-api is a proxy service that forwards GitHub Copilot API calls to Claude Code, supporting:
+
+- 🔄 **API Proxy Forwarding** - Seamlessly forwards GitHub Copilot API calls to Claude Code
+- 🔑 **GitHub Authentication** - Supports GitHub device authorization flow
+- 🎯 **Model Mapping** - Automatically maps GitHub Copilot models to corresponding Claude models
+- ⚡ **Local Deployment** - Runs proxy service locally for privacy protection
+- 🛠️ **Simple Configuration** - One-click installation and configuration for quick setup
+- 🌐 **High Compatibility** - Fully compatible with GitHub Copilot API interface
+
+### 💡 How It Works
+
+```mermaid
+graph LR
+A["GitHub Copilot Client"] --> B["copilot-api Proxy Service<br/>(localhost:4141)"]
+B --> C["Claude Code"]
+C --> D["Claude API"]
+
+style B fill:#e1f5fe
+style C fill:#f3e5f5
+style D fill:#e8f5e8
+```
+
+### 🛠️ Installation & Configuration
+
+#### 1. Install Dependencies
+
+Ensure Node.js is installed on your system, then install the required tools:
+
+```bash
+# Install copilot-api
+npm install -g copilot-api
+
+# Install Claude Code
+npm install -g @anthropic-ai/claude-code
+```
+
+#### 2. Start Proxy Service
+
+Open the first terminal and start the proxy service:
+
+```bash
+copilot-api start
+```
+
+The system will prompt for GitHub authorization. Follow the instructions to visit the page and enter the device code to complete authorization.
+
+#### 3. Configure Claude Code
+
+Add configuration to `~/.claude/settings.json`:
+
+```json
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:4141",
+    "ANTHROPIC_AUTH_TOKEN": "dummy",
+    "ANTHROPIC_MODEL": "claude-sonnet-4",
+    "ANTHROPIC_SMALL_FAST_MODEL": "claude-3.7-sonnet",
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+  }
+}
+```
+
+#### 4. Start Claude Code
+
+In the second terminal, execute:
+
+```bash
+claude
+```
+
+### 📋 System Requirements
+
+- **Node.js**: 16.0+
+- **GitHub Account**: Requires GitHub Copilot access permissions
+- **Network Connection**: Stable internet connection for authentication
+
 ## 🚀 Quick Start
 
 ### 1. Clone the Project
@@ -372,11 +453,12 @@ npm install -g @anthropic-ai/claude-code
 
 ## 📁 Project Structure
 
-```
+```text
 AICode/
 ├── Claude_Code/
 │   ├── Claude_code_proxy.sh      # Linux/macOS script
-│   └── Claude_code_proxy.ps1     # Windows script
+│   ├── Claude_code_proxy.ps1     # Windows script
+│   └── copilot_api.md            # Copilot-API proxy service configuration guide
 ├── wxn8n/                        # WXn8n WeChat Bot
 │   ├── assets/                   # Asset files
 │   ├── config.env.template       # Configuration template
