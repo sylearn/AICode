@@ -485,6 +485,26 @@ We welcome your contributions! Please follow these steps:
 4.  Push to the branch (`git push origin feature/AmazingFeature`)
 5.  Open a Pull Request
 
+## 💖 Sponsor
+
+<p align="center">
+  <a href="https://sucloud.vip">
+    <img src="https://raw.githubusercontent.com/sylearn/AIUsage/main/docs/images/sucloud-logo.png" alt="Sucloud" width="180">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://sucloud.vip"><strong>Sucloud</strong></a> — AI API aggregation platform with 500+ models.<br>
+  Full modality coverage (text, image, video, audio) including Claude, GPT, Gemini and more.<br>
+  RMB payment supported, no overseas card required.
+</p>
+
+<p align="center">
+  <img alt="Models" src="https://img.shields.io/badge/500%2B%20Models-full%20modality-6366f1?style=flat-square">
+  <img alt="Pricing" src="https://img.shields.io/badge/0.7%C2%A5%20%3D%20%241-pay--as--you--go-22c55e?style=flat-square">
+  <img alt="Bonus" src="https://img.shields.io/badge/%240.2-welcome%20bonus-f59e0b?style=flat-square">
+</p>
+
 ## ⭐ Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=sylearn/AICode&type=Date)](https://star-history.com/#sylearn/AICode&Date)

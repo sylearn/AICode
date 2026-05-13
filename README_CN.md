@@ -484,6 +484,26 @@ AICode/
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 打开一个 Pull Request
 
+## 💖 赞助商
+
+<p align="center">
+  <a href="https://sucloud.vip">
+    <img src="https://raw.githubusercontent.com/sylearn/AIUsage/main/docs/images/sucloud-logo.png" alt="Sucloud" width="180">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://sucloud.vip"><strong>Sucloud</strong></a> —— AI API 聚合平台，汇聚 500+ 模型。<br>
+  全模态覆盖（文本、图像、视频、音频），包括 Claude、GPT、Gemini 等主流模型。<br>
+  支持人民币支付，无需海外信用卡。
+</p>
+
+<p align="center">
+  <img alt="Models" src="https://img.shields.io/badge/500%2B%20%E6%A8%A1%E5%9E%8B-%E5%85%A8%E6%A8%A1%E6%80%81-6366f1?style=flat-square">
+  <img alt="Pricing" src="https://img.shields.io/badge/0.7%C2%A5%20%3D%20%241-%E6%8C%89%E9%87%8F%E8%AE%A1%E8%B4%B9-22c55e?style=flat-square">
+  <img alt="Bonus" src="https://img.shields.io/badge/%240.2-%E6%96%B0%E4%BA%BA%E7%A6%8F%E5%88%A9-f59e0b?style=flat-square">
+</p>
+
 ## ⭐ Star 历史
 
 [![Star History Chart](https://api.star-history.com/svg?repos=sylearn/AICode&type=Date)](https://star-history.com/#sylearn/AICode&Date)
