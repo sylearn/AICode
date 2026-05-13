@@ -5,6 +5,14 @@
 
 [🇨🇳 Chinese](./README_CN.md) | [🇺🇸 English](./README.md)
 
+<p align="center">
+  <sup>Sponsored by</sup><br>
+  <a href="https://sucloud.vip">
+    <img src="https://raw.githubusercontent.com/sylearn/AIUsage/main/docs/images/sucloud-logo.png" alt="Sucloud" width="180">
+  </a><br>
+  <sub>500+ AI models · Text, image, video & audio · Top models included · Pay-as-you-go</sub>
+</p>
+
 A comprehensive collection of practical AI-related scripts designed to simplify AI development workflows and automate common tasks.
 
 ## 🤖 WXn8n WeChat Bot

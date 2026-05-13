@@ -4,6 +4,14 @@
 
 [🇨🇳 中文文档](./README_CN.md) | [🇺🇸 English](./README.md)
 
+<p align="center">
+  <sup>赞助商</sup><br>
+  <a href="https://sucloud.vip">
+    <img src="https://raw.githubusercontent.com/sylearn/AIUsage/main/docs/images/sucloud-logo.png" alt="Sucloud" width="180">
+  </a><br>
+  <sub>500+ AI 模型 · 文本、图像、视频与音频 · 包含主流模型 · 按量计费</sub>
+</p>
+
 一个全面的 AI 相关实用脚本集合，旨在简化 AI 开发工作流程并自动化常见任务。
 
 ## 🤖 WXn8n 微信机器人
